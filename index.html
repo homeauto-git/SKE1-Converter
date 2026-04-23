@@ -459,6 +459,7 @@ const HDR_SIZE    = 16;
 
 const CORE_JS   = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.js';
 const CORE_WASM = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.wasm';
+const WORKER_JS = 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/worker.js';
 
 // ── FFmpeg singleton ──────────────────────────────────────────────────────────
 let ff = null;
@@ -477,8 +478,9 @@ async function getFF() {
         document.getElementById('ff-prog-bar').style.width = (progress * 100) + '%';
     });
     await inst.load({
-      coreURL: await toBlobURL(CORE_JS,   'text/javascript'),
-      wasmURL: await toBlobURL(CORE_WASM, 'application/wasm'),
+      coreURL:   await toBlobURL(CORE_JS,   'text/javascript'),
+      wasmURL:   await toBlobURL(CORE_WASM, 'application/wasm'),
+      workerURL: await toBlobURL(WORKER_JS, 'text/javascript'),
     });
     ff = inst;
     hideOverlay();
