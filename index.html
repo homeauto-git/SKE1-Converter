@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SKE1 Toolkit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:       #080b10;
+  --surface:  #0d1119;
+  --panel:    #111827;
+  --border:   #1e2a3a;
+  --border2:  #243040;
+  --accent:   #00d4ff;
+  --accent2:  #0088cc;
+  --green:    #00ff9d;
+  --amber:    #ffb800;
+  --red:      #ff4466;
+  --text:     #dce8f5;
+  --muted:    #4a6278;
+  --mono:     "IBM Plex Mono", monospace;
+  --display:  "Syne", sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Grid background ── */
+body::before {
+  content: "";
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* ── Glow blobs ── */
+.blob {
+  position: fixed; border-radius: 50%; pointer-events: none; z-index: 0;
+  filter: blur(80px); opacity: .18;
+}
+.blob-1 { width: 500px; height: 500px; top: -150px; right: -100px; background: #00d4ff; }
+.blob-2 { width: 400px; height: 400px; bottom: -100px; left: -80px; background: #0044aa; }
+
+.container {
+  position: relative; z-index: 1;
+  max-width: 900px; margin: 0 auto;
+  padding: 3rem 1.5rem 4rem;
+}
+
+/* ── Header ── */
+header {
+  margin-bottom: 3.5rem;
+  display: grid; grid-template-columns: 1fr auto;
+  align-items: end; gap: 1rem;
+}
+.logo {
+  font-family: var(--display);
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--text);
+}
+.logo span { color: var(--accent); }
+.tagline {
+  font-size: .72rem; color: var(--muted);
+  margin-top: .5rem; letter-spacing: .08em;
+  text-transform: uppercase;
+}
+.spec-pills { display: flex; flex-wrap: wrap; gap: .4rem; justify-content: flex-end; }
+.pill {
+  display: inline-flex; align-items: center; gap: .35rem;
+  background: rgba(0,212,255,.07); border: 1px solid rgba(0,212,255,.2);
+  color: var(--accent); font-size: .68rem; letter-spacing: .06em;
+  padding: .25rem .65rem; border-radius: 3px;
+  text-transform: uppercase;
+}
+.pill::before { content: "▸"; font-size: .55rem; }
+
+/* ── Tab bar ── */
+.tabbar {
+  display: flex; gap: 0; border-bottom: 1px solid var(--border);
+  margin-bottom: 2rem; overflow-x: auto;
+}
+.tab-btn {
+  background: none; border: none; border-bottom: 2px solid transparent;
+  color: var(--muted); font-family: var(--mono); font-size: .8rem;
+  letter-spacing: .06em; text-transform: uppercase; font-weight: 500;
+  padding: .7rem 1.3rem; cursor: pointer; white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn:hover { color: var(--text); }
+.tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* ── Panels ── */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* ── Card ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  padding: 1.8rem;
+  margin-bottom: 1.2rem;
+  position: relative;
+  overflow: hidden;
+}
+.card::before {
+  content: "";
+  position: absolute; top: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: .35;
+}
+.card-title {
+  font-family: var(--display);
+  font-size: .9rem; font-weight: 700;
+  letter-spacing: .05em; text-transform: uppercase;
+  color: var(--text); margin-bottom: 1.4rem;
+  display: flex; align-items: center; gap: .6rem;
+}
+.card-title .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent); flex-shrink: 0;
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* ── Drop zone ── */
+.dropzone {
+  border: 1px dashed var(--border2);
+  background: var(--panel);
+  border-radius: 2px;
+  padding: 2.8rem 1rem;
+  text-align: center;
+  cursor: pointer;
+  position: relative;
+  transition: border-color .2s, background .2s;
+}
+.dropzone:hover, .dropzone.over {
+  border-color: var(--accent);
+  background: rgba(0,212,255,.04);
+}
+.dropzone input[type=file] {
+  position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%;
+}
+.dz-icon { font-size: 2rem; line-height: 1; margin-bottom: .6rem; }
+.dz-text { font-size: .82rem; color: var(--muted); line-height: 1.7; }
+.dz-text strong { color: var(--accent); }
+.dz-accepts { font-size: .7rem; color: var(--muted); margin-top: .4rem; opacity: .7; }
+.dz-filename {
+  font-size: .85rem; color: var(--green);
+  margin-top: .8rem; word-break: break-all;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; gap: .5rem;
+  font-family: var(--mono); font-size: .78rem; font-weight: 600;
+  letter-spacing: .08em; text-transform: uppercase;
+  border: none; border-radius: 2px; cursor: pointer;
+  padding: .7rem 1.5rem; transition: all .15s;
+}
+.btn-primary {
+  background: var(--accent); color: #000;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #33ddff; transform: translateY(-1px);
+  box-shadow: 0 4px 20px rgba(0,212,255,.3);
+}
+.btn-primary:disabled {
+  background: rgba(0,212,255,.15); color: var(--muted); cursor: not-allowed;
+}
+.btn-ghost {
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--border2);
+}
+.btn-ghost:hover { color: var(--text); border-color: var(--muted); }
+.btn-row { display: flex; gap: .8rem; align-items: center; margin-top: 1.2rem; flex-wrap: wrap; }
+
+/* ── Status ── */
+.status-box {
+  display: none; margin-top: 1rem;
+  padding: .75rem 1rem; border-radius: 2px;
+  font-size: .78rem; line-height: 1.6;
+}
+.status-box.show { display: block; }
+.status-info    { background: rgba(0,212,255,.08);  border: 1px solid rgba(0,212,255,.25); color: #66e0ff; }
+.status-success { background: rgba(0,255,157,.08);  border: 1px solid rgba(0,255,157,.25); color: var(--green); }
+.status-error   { background: rgba(255,68,102,.08); border: 1px solid rgba(255,68,102,.25); color: var(--red); }
+
+/* ── Progress bar ── */
+.prog-track {
+  height: 2px; background: var(--border);
+  margin-top: 1rem; display: none; border-radius: 1px; overflow: hidden;
+}
+.prog-track.show { display: block; }
+.prog-bar {
+  height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  transition: width .3s ease;
+  border-radius: 1px;
+}
+.prog-bar.indeterminate {
+  width: 40%; animation: slide 1.2s ease-in-out infinite;
+}
+@keyframes slide {
+  0%   { margin-left: 0%;   width: 40%; }
+  50%  { margin-left: 60%;  width: 40%; }
+  100% { margin-left: 0%;   width: 40%; }
+}
+
+/* ── Spinner ── */
+.spin {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(0,0,0,.3);
+  border-top-color: #000;
+  border-radius: 50%;
+  display: none;
+  animation: rotate .6s linear infinite;
+  flex-shrink: 0;
+}
+.spin.show { display: inline-block; }
+.spin-light {
+  border-color: rgba(0,212,255,.2);
+  border-top-color: var(--accent);
+}
+@keyframes rotate { to { transform: rotate(360deg); } }
+
+/* ── Inspect result ── */
+.inspect-table {
+  display: none; margin-top: 1.2rem;
+  border: 1px solid var(--border); border-radius: 2px; overflow: hidden;
+}
+.inspect-table.show { display: block; }
+.inspect-row {
+  display: grid; grid-template-columns: 160px 1fr;
+  border-bottom: 1px solid var(--border);
+}
+.inspect-row:last-child { border-bottom: none; }
+.inspect-row.sep {
+  grid-template-columns: 1fr;
+  background: rgba(0,212,255,.04);
+  padding: .3rem 1rem;
+  font-size: .65rem; color: var(--muted); letter-spacing: .1em; text-transform: uppercase;
+}
+.ik, .iv {
+  padding: .5rem 1rem; font-size: .78rem;
+}
+.ik { color: var(--muted); border-right: 1px solid var(--border); background: var(--panel); }
+.iv { color: var(--text); font-family: var(--mono); word-break: break-all; }
+.iv.ok  { color: var(--green); }
+.iv.bad { color: var(--red); }
+.iv.hi  { color: var(--accent); }
+
+/* ── Format reference ── */
+.ref-block {
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 2px; padding: 1.2rem 1.4rem;
+  font-size: .75rem; line-height: 2; overflow-x: auto;
+}
+.r-off  { color: var(--muted); }
+.r-size { color: var(--amber); }
+.r-name { color: var(--accent); font-weight: 600; }
+.r-val  { color: var(--green); }
+.r-com  { color: #334455; }
+.r-head { color: var(--muted); letter-spacing: .1em; text-transform: uppercase; font-size: .65rem; }
+.note-box {
+  background: var(--panel); border-left: 2px solid var(--accent);
+  padding: .9rem 1.2rem; font-size: .78rem;
+  color: var(--muted); line-height: 1.8; margin-top: 1rem;
+}
+.note-box code { color: var(--accent); }
+
+/* ── FFmpeg loading overlay ── */
+#ff-overlay {
+  display: none; position: fixed; inset: 0; z-index: 100;
+  background: rgba(8,11,16,.92); backdrop-filter: blur(6px);
+  flex-direction: column; align-items: center; justify-content: center;
+  gap: 1.2rem; text-align: center;
+}
+#ff-overlay.show { display: flex; }
+.ff-title { font-family: var(--display); font-size: 1.1rem; color: var(--text); }
+.ff-sub   { font-size: .75rem; color: var(--muted); }
+.ff-prog-track {
+  width: 280px; height: 2px; background: var(--border);
+  border-radius: 1px; overflow: hidden;
+}
+.ff-prog-bar {
+  height: 100%; background: var(--accent);
+  transition: width .3s; width: 0%;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  header { grid-template-columns: 1fr; }
+  .spec-pills { justify-content: flex-start; }
+  .inspect-row { grid-template-columns: 120px 1fr; }
+}
+</style>
+</head>
+<body>
+<div class="blob blob-1"></div>
+<div class="blob blob-2"></div>
+
+<!-- FFmpeg loading overlay -->
+<div id="ff-overlay">
+  <div class="ff-title">Loading FFmpeg Engine</div>
+  <div class="ff-sub" id="ff-sub">Fetching WebAssembly core (~31 MB, one-time download)…</div>
+  <div class="ff-prog-track"><div class="ff-prog-bar" id="ff-prog-bar"></div></div>
+</div>
+
+<div class="container">
+
+  <header>
+    <div>
+      <div class="logo">SKE<span>1</span></div>
+      <div class="tagline">Audio Container Toolkit &nbsp;·&nbsp; Browser-native</div>
+    </div>
+    <div class="spec-pills">
+      <span class="pill">G.726LE</span>
+      <span class="pill">8 kHz</span>
+      <span class="pill">32 kbps</span>
+      <span class="pill">Mono</span>
+    </div>
+  </header>
+
+  <div class="tabbar">
+    <button class="tab-btn active" data-tab="encode">▸ Encode → SKE1</button>
+    <button class="tab-btn"        data-tab="decode">▸ Decode → WAV</button>
+    <button class="tab-btn"        data-tab="inspect">▸ Inspect</button>
+    <button class="tab-btn"        data-tab="ref">▸ Format Ref</button>
+  </div>
+
+  <!-- ── ENCODE ── -->
+  <div class="tab-panel active" id="tab-encode">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Encode Audio → SKE1</div>
+      <div class="dropzone" id="dz-enc">
+        <input type="file" id="fi-enc" accept=".wav,.mp4,.mp3,.m4a,.ogg,.flac,.aac">
+        <div class="dz-icon">🎵</div>
+        <div class="dz-text"><strong>Drop file here</strong> or click to browse</div>
+        <div class="dz-accepts">.wav &nbsp;·&nbsp; .mp4 &nbsp;·&nbsp; .mp3 &nbsp;·&nbsp; .m4a &nbsp;·&nbsp; .ogg &nbsp;·&nbsp; .flac &nbsp;·&nbsp; .aac</div>
+        <div class="dz-filename" id="fn-enc"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-enc" disabled>
+          <div class="spin" id="sp-enc"></div>
+          Convert to SKE1
+        </button>
+      </div>
+      <div class="prog-track" id="pt-enc"><div class="prog-bar indeterminate" id="pb-enc"></div></div>
+      <div class="status-box" id="st-enc"></div>
+    </div>
+  </div>
+
+  <!-- ── DECODE ── -->
+  <div class="tab-panel" id="tab-decode">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Decode SKE1 → WAV</div>
+      <div class="dropzone" id="dz-dec">
+        <input type="file" id="fi-dec" accept=".ske1,.ske">
+        <div class="dz-icon">📦</div>
+        <div class="dz-text"><strong>Drop .ske1 file here</strong> or click to browse</div>
+        <div class="dz-accepts">.ske1 &nbsp;·&nbsp; .ske</div>
+        <div class="dz-filename" id="fn-dec"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-dec" disabled>
+          <div class="spin" id="sp-dec"></div>
+          Decode to WAV
+        </button>
+      </div>
+      <div class="prog-track" id="pt-dec"><div class="prog-bar indeterminate" id="pb-dec"></div></div>
+      <div class="status-box" id="st-dec"></div>
+    </div>
+  </div>
+
+  <!-- ── INSPECT ── -->
+  <div class="tab-panel" id="tab-inspect">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Inspect SKE1 Header</div>
+      <div class="dropzone" id="dz-ins">
+        <input type="file" id="fi-ins" accept=".ske1,.ske">
+        <div class="dz-icon">🔬</div>
+        <div class="dz-text"><strong>Drop .ske1 file here</strong> or click to browse</div>
+        <div class="dz-accepts">.ske1 &nbsp;·&nbsp; .ske</div>
+        <div class="dz-filename" id="fn-ins"></div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="btn-ins" disabled>Inspect</button>
+      </div>
+      <div class="status-box" id="st-ins"></div>
+      <div class="inspect-table" id="it-ins"></div>
+    </div>
+  </div>
+
+  <!-- ── FORMAT REFERENCE ── -->
+  <div class="tab-panel" id="tab-ref">
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Binary Format</div>
+      <div class="ref-block">
+<span class="r-head">offset    size    field            value / notes</span>
+<span class="r-com">──────────────────────────────────────────────────────────────</span>
+<span class="r-off">0x00–0x03</span>  <span class="r-size">4 B</span>   <span class="r-name">File Size</span>       <span class="r-com">← big-endian uint32, total including header</span>
+<span class="r-off">0x04–0x07</span>  <span class="r-size">4 B</span>   <span class="r-name">Magic</span>           <span class="r-val">"SKE1"</span>  <span class="r-com">(53 4B 45 31)</span>
+<span class="r-off">0x08–0x0F</span>  <span class="r-size">8 B</span>   <span class="r-name">Header Block</span>    <span class="r-val">5B 7C FF FF FF FF FF FF</span>  <span class="r-com">← confirmed static</span>
+<span class="r-off">0x10–end </span>  <span class="r-size">N B</span>   <span class="r-name">Payload</span>         <span class="r-com">← raw G.726LE audio</span>
+<span class="r-com">──────────────────────────────────────────────────────────────</span>
+<span class="r-head">codec parameters</span>
+<span class="r-com">──────────────────────────────────────────────────────────────</span>
+  <span class="r-name">codec</span>        <span class="r-val">G.726 ADPCM, little-endian bit order (g726le)</span>
+  <span class="r-name">sample rate</span>  <span class="r-val">8000 Hz</span>
+  <span class="r-name">bitrate</span>      <span class="r-val">32 kbps  (4 bits/sample)</span>
+  <span class="r-name">channels</span>     <span class="r-val">1 (mono)</span>
+  <span class="r-name">container</span>    <span class="r-val">raw / headerless</span>
+<span class="r-com">──────────────────────────────────────────────────────────────</span>
+<span class="r-head">ffmpeg cli (manual)</span>
+<span class="r-com">──────────────────────────────────────────────────────────────</span>
+  <span class="r-com"># Extract payload</span>
+  <span class="r-val">dd if=in.ske1 of=payload.g726 bs=1 skip=16</span>
+
+  <span class="r-com"># Decode → WAV</span>
+  <span class="r-val">ffmpeg -f g726le -ar 8000 -i payload.g726 out.wav</span>
+
+  <span class="r-com"># Encode WAV → payload</span>
+  <span class="r-val">ffmpeg -i in.wav -ac 1 -ar 8000 -c:a g726le -b:a 32k -f g726le payload.g726</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span class="dot"></span>Notes</div>
+      <div class="note-box">
+        The 8-byte block <code>5B 7C FF FF FF FF FF FF</code> is <strong>static</strong> across verified samples — it carries no checksum or metadata. The file-size field at <code>0x00</code> must be an exact big-endian uint32 of the complete file length or the device will reject it.<br><br>
+        G.726LE differs from standard G.726 only in bit ordering within each byte. Using <code>g726</code> instead of <code>g726le</code> produces garbled audio. The two are not interchangeable.
+      </div>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<script type="module">
+import { FFmpeg }              from 'https://unpkg.com/@ffmpeg/ffmpeg@0.12.6/dist/esm/index.js';
+import { fetchFile, toBlobURL } from 'https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js';
+
+// ── Constants ─────────────────────────────────────────────────────────────────
+const SKE1_MAGIC  = [0x53,0x4B,0x45,0x31];
+const SKE1_BLOCK  = [0x5B,0x7C,0xFF,0xFF,0xFF,0xFF,0xFF,0xFF];
+const HDR_SIZE    = 16;
+
+const CORE_JS   = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.js';
+const CORE_WASM = 'https://unpkg.com/@ffmpeg/core@0.12.4/dist/umd/ffmpeg-core.wasm';
+
+// ── FFmpeg singleton ──────────────────────────────────────────────────────────
+let ff = null;
+let ffLoading = false;
+
+async function getFF() {
+  if (ff) return ff;
+  if (ffLoading) { while (ffLoading) await sleep(100); return ff; }
+  ffLoading = true;
+  showOverlay('Fetching WebAssembly core (~31 MB, one-time download)…');
+  try {
+    const inst = new FFmpeg();
+    inst.on('log', ({ message }) => console.debug('[ff]', message));
+    inst.on('progress', ({ progress }) => {
+      if (progress >= 0 && progress <= 1)
+        document.getElementById('ff-prog-bar').style.width = (progress * 100) + '%';
+    });
+    await inst.load({
+      coreURL: await toBlobURL(CORE_JS,   'text/javascript'),
+      wasmURL: await toBlobURL(CORE_WASM, 'application/wasm'),
+    });
+    ff = inst;
+    hideOverlay();
+    return ff;
+  } catch(e) {
+    hideOverlay();
+    ffLoading = false;
+    throw new Error('Failed to load FFmpeg engine: ' + e.message);
+  } finally { ffLoading = false; }
+}
+
+// ── SKE1 helpers ──────────────────────────────────────────────────────────────
+function buildSKE1(payload) {
+  const total = HDR_SIZE + payload.length;
+  const out   = new Uint8Array(total);
+  out[0] = (total >>> 24) & 0xFF;
+  out[1] = (total >>> 16) & 0xFF;
+  out[2] = (total >>>  8) & 0xFF;
+  out[3] =  total         & 0xFF;
+  SKE1_MAGIC.forEach((b,i) => out[4+i] = b);
+  SKE1_BLOCK.forEach((b,i) => out[8+i] = b);
+  out.set(payload, HDR_SIZE);
+  return out;
+}
+
+function parseSKE1(data) {
+  const magic = String.fromCharCode(data[4],data[5],data[6],data[7]);
+  if (magic !== 'SKE1') throw new Error('Not a valid SKE1 file — magic bytes missing');
+  return data.slice(HDR_SIZE);
+}
+
+function inspectSKE1(data, filename) {
+  const magic = String.fromCharCode(data[4],data[5],data[6],data[7]);
+  if (magic !== 'SKE1') throw new Error('Not a valid SKE1 file');
+  const hdrSize    = ((data[0]<<24)|(data[1]<<16)|(data[2]<<8)|data[3]) >>> 0;
+  const actualSize = data.length;
+  const blockHex   = Array.from(data.slice(8,16)).map(b=>b.toString(16).padStart(2,'0').toUpperCase()).join(' ');
+  const payloadSz  = actualSize - HDR_SIZE;
+  const durSec     = payloadSz / (32000/8);
+  const mm = String(Math.floor(durSec/60)).padStart(2,'0');
+  const ss = String(Math.floor(durSec%60)).padStart(2,'0');
+  return { filename, actualSize, hdrSize, sizeMatch: hdrSize === actualSize,
+           magic, blockHex, payloadSz, durSec: durSec.toFixed(2), durFmt: `${mm}:${ss}` };
+}
+
+// ── FFmpeg conversion ─────────────────────────────────────────────────────────
+async function toG726LE(fileData, inExt) {
+  const f = await getFF();
+  const inName  = 'input' + inExt;
+  const outName = 'output.g726';
+  await f.writeFile(inName, fileData);
+  const ret = await f.exec([
+    '-y', '-i', inName,
+    '-ac','1', '-ar','8000',
+    '-c:a','g726le', '-b:a','32k',
+    '-f','g726le', outName
+  ]);
+  if (ret !== 0) throw new Error('FFmpeg encode failed (see console for details)');
+  const out = await f.readFile(outName);
+  await f.deleteFile(inName);
+  await f.deleteFile(outName);
+  return out;
+}
+
+async function fromG726LE(payload) {
+  const f = await getFF();
+  await f.writeFile('input.g726', payload);
+  const ret = await f.exec([
+    '-y', '-f','g726le', '-ar','8000',
+    '-i','input.g726', 'output.wav'
+  ]);
+  if (ret !== 0) throw new Error('FFmpeg decode failed (see console for details)');
+  const out = await f.readFile('output.wav');
+  await f.deleteFile('input.g726');
+  await f.deleteFile('output.wav');
+  return out;
+}
+
+// ── UI helpers ────────────────────────────────────────────────────────────────
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function showOverlay(msg) {
+  document.getElementById('ff-sub').textContent = msg;
+  document.getElementById('ff-overlay').classList.add('show');
+}
+function hideOverlay() {
+  document.getElementById('ff-overlay').classList.remove('show');
+}
+
+function setStatus(id, type, html) {
+  const el = document.getElementById(id);
+  el.className = 'status-box show status-' + type;
+  el.innerHTML = html;
+}
+function clearStatus(id) {
+  const el = document.getElementById(id);
+  el.className = 'status-box'; el.innerHTML = '';
+}
+
+function setBusy(suffix, busy) {
+  document.getElementById('btn-'+suffix).disabled = busy;
+  const sp = document.getElementById('sp-'+suffix);
+  if (sp) sp.classList.toggle('show', busy);
+  const pt = document.getElementById('pt-'+suffix);
+  if (pt) pt.classList.toggle('show', busy);
+}
+
+function download(bytes, filename, mime) {
+  const blob = new Blob([bytes], { type: mime });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 1500);
+}
+
+function basename(name) { return name.replace(/\.[^.]+$/, ''); }
+
+// ── Drop zone wiring ──────────────────────────────────────────────────────────
+function wireDZ(dzId, fiId, fnId, btnId) {
+  const dz = document.getElementById(dzId);
+  const fi = document.getElementById(fiId);
+  const fn = document.getElementById(fnId);
+  const btn= document.getElementById(btnId);
+  const refresh = () => {
+    const f = fi.files[0];
+    if (!f) return;
+    fn.textContent = '✓ ' + f.name;
+    btn.disabled = false;
+  };
+  fi.addEventListener('change', refresh);
+  dz.addEventListener('dragover',  e => { e.preventDefault(); dz.classList.add('over'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('over'));
+  dz.addEventListener('drop', e => {
+    e.preventDefault(); dz.classList.remove('over');
+    if (!e.dataTransfer.files.length) return;
+    const dt = new DataTransfer(); dt.items.add(e.dataTransfer.files[0]);
+    fi.files = dt.files; refresh();
+  });
+}
+
+wireDZ('dz-enc', 'fi-enc', 'fn-enc', 'btn-enc');
+wireDZ('dz-dec', 'fi-dec', 'fn-dec', 'btn-dec');
+wireDZ('dz-ins', 'fi-ins', 'fn-ins', 'btn-ins');
+
+// ── Tab switching ─────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ── Encode ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-enc').addEventListener('click', async () => {
+  const file = document.getElementById('fi-enc').files[0];
+  if (!file) return;
+  setBusy('enc', true); clearStatus('st-enc');
+  setStatus('st-enc', 'info', '⏳ Loading engine and encoding…');
+  try {
+    const ext  = file.name.match(/\.[^.]+$/)?.[0] || '.wav';
+    const data = new Uint8Array(await file.arrayBuffer());
+    const g726 = await toG726LE(data, ext);
+    const ske1 = buildSKE1(g726);
+    const name = basename(file.name) + '.ske1';
+    download(ske1, name, 'application/octet-stream');
+    setStatus('st-enc','success',`✅ Done — <strong>${name}</strong> &nbsp;(${(ske1.length/1024).toFixed(1)} KB)`);
+  } catch(e) {
+    setStatus('st-enc','error','❌ ' + e.message);
+  } finally { setBusy('enc', false); }
+});
+
+// ── Decode ────────────────────────────────────────────────────────────────────
+document.getElementById('btn-dec').addEventListener('click', async () => {
+  const file = document.getElementById('fi-dec').files[0];
+  if (!file) return;
+  setBusy('dec', true); clearStatus('st-dec');
+  setStatus('st-dec','info','⏳ Loading engine and decoding…');
+  try {
+    const data    = new Uint8Array(await file.arrayBuffer());
+    const payload = parseSKE1(data);
+    const wav     = await fromG726LE(payload);
+    const name    = basename(file.name) + '.wav';
+    download(wav, name, 'audio/wav');
+    setStatus('st-dec','success',`✅ Done — <strong>${name}</strong> &nbsp;(${(wav.length/1024).toFixed(1)} KB)`);
+  } catch(e) {
+    setStatus('st-dec','error','❌ ' + e.message);
+  } finally { setBusy('dec', false); }
+});
+
+// ── Inspect ───────────────────────────────────────────────────────────────────
+document.getElementById('btn-ins').addEventListener('click', async () => {
+  const file = document.getElementById('fi-ins').files[0];
+  if (!file) return;
+  clearStatus('st-ins');
+  document.getElementById('it-ins').classList.remove('show');
+  try {
+    const data = new Uint8Array(await file.arrayBuffer());
+    const r    = inspectSKE1(data, file.name);
+    setStatus('st-ins','success','✅ Valid SKE1 file');
+    const tbl = document.getElementById('it-ins');
+    tbl.innerHTML = row('Filename',  r.filename,   'hi')
+      + sep('Header')
+      + row('File size (actual)',  r.actualSize.toLocaleString() + ' bytes')
+      + row('File size (header)',  r.hdrSize.toLocaleString() + ' bytes', r.sizeMatch ? 'ok' : 'bad')
+      + row('Size match',  r.sizeMatch ? '✓ Yes' : '✗ No', r.sizeMatch ? 'ok' : 'bad')
+      + row('Magic',       r.magic,     'ok')
+      + row('Header block',r.blockHex,  'hi')
+      + sep('Audio')
+      + row('Payload size',r.payloadSz.toLocaleString() + ' bytes')
+      + row('Codec',       'G.726 ADPCM (g726le)', 'ok')
+      + row('Sample rate', '8000 Hz')
+      + row('Bitrate',     '32 kbps')
+      + row('Channels',    'Mono')
+      + row('Duration',    r.durFmt + '  (' + r.durSec + 's)', 'ok');
+    tbl.classList.add('show');
+  } catch(e) {
+    setStatus('st-ins','error','❌ ' + e.message);
+  }
+});
+
+function row(k, v, cls='') {
+  return `<div class="inspect-row"><div class="ik">${k}</div><div class="iv ${cls}">${v}</div></div>`;
+}
+function sep(label) {
+  return `<div class="inspect-row sep">${label}</div>`;
+}
+</script>
+</body>
+</html>
